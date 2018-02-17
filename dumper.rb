@@ -1,5 +1,3 @@
-Bundler.require
-
 require 'curses'
 require 'optparse'
 require 'parallel'
