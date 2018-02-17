@@ -127,7 +127,7 @@ if options[:action] == 'dump'
     file_constraints = "#{options[:dir]}/#{table}_constraints.sql"
     file_data = "#{options[:dir]}/#{table}_data.sql"
     file_checksum = "#{options[:dir]}/#{table}_checksum.dat"
-    schema = `#{mysqldump_e} #{args} --no-data --tables #{table} 2>/dev/null`
+    schema = `#{mysqldump_e} #{args} --no-data --tables #{table} | grep -v '.SQL_LOG_BIN' | grep -v '.GTID_PURGED' 2>/dev/null`
     constraints = schema.scan /(,[^A-Z\)]*(CONSTRAINT[^\n,]*))/
     if constraints.size > 0
       constraints.each do |el|
@@ -146,7 +146,7 @@ if options[:action] == 'dump'
     File.open(file_schema, 'wb') do |f|
       f.write(schema)
     end
-    `#{mysqldump_e} #{args} --no-create-info --tables #{table} > #{file_data} 2>/dev/null`
+    `#{mysqldump_e} #{args} --no-create-info --tables #{table} | grep -v '.SQL_LOG_BIN' | grep -v '.GTID_PURGED' > #{file_data} 2>/dev/null`
 
     schema = `#{mysql_e} #{args} -e 'show create table #{table};' 2>/dev/null`
     count = `#{mysql_e} #{args} -e 'select count(*) from #{table};' 2>/dev/null`
@@ -175,7 +175,7 @@ elsif options[:action] == 'load'
 
   tables.sort!
 
-  db = `#{mysql_e} -e 'show databases;' | grep '#{options[:db]}'`
+  db = `#{mysql_e} #{args} -e 'show databases;' | grep '#{options[:db]}'`
   if db.empty?
     puts "Database #{options[:db]} doesn't exist, create it before load"
     exit
@@ -189,7 +189,6 @@ elsif options[:action] == 'load'
   Curses.curs_set 0
 
   colonize_tables(tables)
-=begin
   %w(schema data constraints).each_with_index do |type, i|
     log("Loading #{type} to database #{options[:db]}.")
     place_string(0, 1, "[#{i + 1}/4] Loading #{type} for #{tables.size} tables to DB #{options[:db]} from #{options[:dir]}")
@@ -221,7 +220,7 @@ elsif options[:action] == 'load'
     sleep(5)
     Curses.clear
   end
-=end
+
   log("Starting checksum checks in #{options[:db]}.")
   place_string(0, 1, "[4/4] Starting checksum checks in #{options[:db]}")
   tables.each do |tbl|
