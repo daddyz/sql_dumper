@@ -125,7 +125,7 @@ if options[:action] == 'dump'
     file_constraints = "#{options[:dir]}/#{table}_constraints.sql"
     file_data = "#{options[:dir]}/#{table}_data.sql"
     file_checksum = "#{options[:dir]}/#{table}_checksum.dat"
-    schema = `#{mysqldump_e} #{args} --no-data --tables #{table} | grep -v '.SQL_LOG_BIN' | grep -v '.GTID_PURGED' 2>/dev/null`
+    schema = `#{mysqldump_e} #{args} --set-gtid-purged=OFF --no-data --tables #{table} 2>/dev/null | grep -v '.SQL_LOG_BIN' | grep -v '.GTID_PURGED' 2>/dev/null`
     constraints = schema.scan /(,[^A-Z\)]*(CONSTRAINT[^\n,]*))/
     if constraints.size > 0
       constraints.each do |el|
@@ -144,7 +144,7 @@ if options[:action] == 'dump'
     File.open(file_schema, 'wb') do |f|
       f.write(schema)
     end
-    `#{mysqldump_e} #{args} --no-create-info --tables #{table} | grep -v '.SQL_LOG_BIN' | grep -v '.GTID_PURGED' > #{file_data} 2>/dev/null`
+    `#{mysqldump_e} #{args} --no-create-info --set-gtid-purged=OFF --tables #{table}  2>/dev/null | grep -v '.SQL_LOG_BIN' | grep -v '.GTID_PURGED' > #{file_data} 2>/dev/null`
 
     schema = `#{mysql_e} #{args} -e 'show create table #{table};' 2>/dev/null`
     count = `#{mysql_e} #{args} -e 'select count(*) from #{table};' 2>/dev/null`
