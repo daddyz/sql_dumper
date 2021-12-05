@@ -64,7 +64,7 @@ end
 args = "-u#{options[:username]} -p#{options[:password]} -h#{options[:host]} #{options[:db]}"
 
 def log(msg)
-  File.write("#{__dir__}/sql_dumper.log", "[#{Time.now}] #{msg}\n", { mode: 'a' })
+  File.write("#{__dir__}/sql_dumper.log", "[#{Time.now}] #{msg}\n", mode: 'a')
 end
 
 def place_string(y, x, string)
@@ -162,7 +162,7 @@ if options[:action] == 'dump'
   Curses.getch
 elsif options[:action] == 'load'
   tables = Dir["#{options[:dir]}/*_schema.sql"].map do |file|
-    match = file.match /\/(.*)_schema.sql/
+    match = file.match /\/([^\/]*)_schema.sql/
     match[1]
   end
 
